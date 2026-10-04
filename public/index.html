@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>字幕校对台 · Subtitle Studio</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1>🎬 字幕校对台</h1>
+    <div class="actor-box">
+      <label for="actorInput">操作人</label>
+      <input id="actorInput" maxlength="64" placeholder="你的名字（修订留痕）">
+    </div>
+  </header>
+
+  <main class="layout">
+    <aside class="sidebar">
+      <section class="card">
+        <h2>上传视频</h2>
+        <form id="uploadForm">
+          <input type="text" id="titleInput" maxlength="200" placeholder="视频标题（可选）">
+          <input type="file" id="fileInput" accept="video/mp4,video/webm,video/ogg,video/quicktime,video/x-matroska" required>
+          <input type="text" id="durationInput" placeholder="视频时长（毫秒，选文件后自动填入）">
+          <div id="durationHint" class="hint">用于校验字幕终点，选文件后自动探测，可手动修正</div>
+          <button type="submit" class="btn primary">上传</button>
+          <div id="uploadProgress" class="hint hidden"></div>
+        </form>
+      </section>
+
+      <section class="card">
+        <h2>视频列表</h2>
+        <ul id="videoList" class="video-list"></ul>
+      </section>
+    </aside>
+
+    <section id="workspace" class="workspace hidden">
+      <div class="card video-head">
+        <div>
+          <h2 id="videoTitle"></h2>
+          <div id="videoMeta" class="hint"></div>
+        </div>
+        <div>
+          <a id="downloadDraft" class="btn" download>⬇ 下载草稿 SRT</a>
+          <button id="deleteVideoBtn" class="btn danger">删除视频</button>
+        </div>
+      </div>
+
+      <div class="card player-card">
+        <div class="player-wrap">
+          <video id="player" preload="metadata" controls></video>
+          <div id="subtitleOverlay" class="subtitle-overlay"></div>
+        </div>
+        <div class="timeline" id="timeline"></div>
+        <div class="timeline-actions">
+          <button id="addAtPlayhead" class="btn small">＋ 在播放位置新建片段</button>
+          <span class="hint">点击片段块可跳转；相邻片段可首尾相接但不得重叠</span>
+        </div>
+      </div>
+
+      <div class="card editor-card" id="editorCard">
+        <h2 id="editorTitle">新建 / 编辑片段</h2>
+        <div class="editor-grid">
+          <label>起点
+            <input type="text" id="startInput" placeholder="00:00:01.200 或 1200">
+          </label>
+          <label>终点
+            <input type="text" id="endInput" placeholder="00:00:03.450 或 3450">
+          <div class="ms-row">
+            <button type="button" class="btn tiny" data-grab="start">取当前播放</button>
+            <span id="startMs" class="hint"></span>
+          </div>
+          <div class="ms-row">
+            <button type="button" class="btn tiny" data-grab="end">取当前播放</button>
+            <span id="endMs" class="hint"></span>
+          </div>
+          <label class="span2">字幕文本（多行可用回车）
+            <textarea id="textInput" rows="3"></textarea>
+          </label>
+        </div>
+        <div id="editorMeta" class="hint"></div>
+        <div id="editorWarning" class="warn hidden"></div>
+        <div class="editor-actions">
+          <button id="saveSegment" class="btn primary">保存片段</button>
+          <button id="cancelEdit" class="btn">清空</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>片段列表</h2>
+        <div class="table-wrap">
+          <table class="seg-table">
+            <thead>
+              <tr><th>#</th><th>起止（毫秒）</th><th>文本</th><th>状态</th><th>修订</th><th>操作</th></tr>
+            </thead>
+            <tbody id="segTbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card publish-card">
+        <h2>发布与下载</h2>
+        <div id="publishStatus" class="hint"></div>
+        <div class="publish-row">
+          <input type="text" id="publishNote" maxlength="500" placeholder="版本备注（可选）">
+          <button id="publishBtn" class="btn primary">发布不可变版本</button>
+        </div>
+        <h3>已发布版本</h3>
+        <ul id="publicationList" class="pub-list"></ul>
+      </div>
+    </section>
+
+    <section id="emptyState" class="empty">
+      <p>👈 从左侧上传一个视频开始校对</p>
+      <p class="hint">视频与数据库均保存在运行本服务的本机上（data/ 目录）。</p>
+    </section>
+  </main>
+
+  <!-- 修订冲突弹窗：展示他人当前内容，绝不静默覆盖 -->
+  <div id="conflictModal" class="modal hidden">
+    <div class="modal-box">
+      <h2>⚠ 修订冲突</h2>
+      <p id="conflictMsg"></p>
+      <div class="conflict-grid">
+        <div>
+          <h3>你的原稿（不会自动丢弃）</h3>
+          <pre id="conflictMine"></pre>
+        </div>
+        <div>
+          <h3>服务端当前内容</h3>
+          <pre id="conflictCurrent"></pre>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button id="conflictRetry" class="btn primary">用我的文本基于最新修订重试</button>
+        <button id="conflictDiscard" class="btn">放弃修改并刷新</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+  <script src="app.js"></script>
+</body>
+</html>

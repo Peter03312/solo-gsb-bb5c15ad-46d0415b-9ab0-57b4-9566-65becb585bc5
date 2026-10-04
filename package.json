@@ -1,0 +1,18 @@
+{
+  "name": "subtitle-studio",
+  "version": "1.0.0",
+  "description": "小团队视频字幕校对平台（Node.js + SQLite + 浏览器时间轴）",
+  "main": "src/server.js",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.8.1",
+    "express": "^4.21.2",
+    "multer": "^2.0.0"
+  }
+}

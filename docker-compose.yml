@@ -1,0 +1,24 @@
+services:
+  subtitle-studio:
+    build: .
+    image: subtitle-studio:latest
+    container_name: subtitle-studio
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      # 容器内监听端口（左侧宿主机映射端口由上方 PORT 变量控制）
+      PORT: 3000
+      HOST: 0.0.0.0
+      # 单个视频上传大小上限（MB）
+      MAX_UPLOAD_MB: "2048"
+      DATA_DIR: /data
+    volumes:
+      # 数据库与视频文件持久化到本机 ./data，删除容器也不丢数据
+      - ./data:/data
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
